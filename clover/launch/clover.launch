@@ -7,12 +7,12 @@
     <arg name="rosbridge" default="true"/>
     <arg name="main_camera" default="true"/>
     <arg name="optical_flow" default="true"/>
-    <arg name="aruco" default="false"/>
+    <arg name="aruco" default="true"/>
     <arg name="rangefinder_vl53l1x" default="true"/>
     <arg name="led" default="true"/>
     <arg name="blocks" default="false"/>
-    <arg name="rc" default="false"/>
-    <arg name="force_init" default="true"/> <!-- force estimator to init by publishing zero pose -->
+    <arg name="rc" default="true"/>
+    <arg name="shell" default="true"/>
 
     <arg name="simulator" default="false"/> <!-- flag that we are operating on a simulated drone -->
 
@@ -34,22 +34,28 @@
     </node>
 
     <!-- aruco markers -->
-    <include file="$(find clover)/launch/aruco.launch" if="$(eval aruco or force_init)">
-        <arg name="force_init" value="$(arg force_init)"/>
-        <arg name="disable" value="$(eval not aruco)"/>
-    </include>
+    <include file="$(find clover)/launch/aruco.launch" if="$(arg aruco)"/>
 
     <!-- optical flow -->
-    <node pkg="nodelet" type="nodelet" name="optical_flow" args="load clover/optical_flow main_camera_nodelet_manager" if="$(arg optical_flow)" clear_params="true" output="screen" respawn="true">
+    <node pkg="nodelet" type="nodelet" name="optical_flow" args="load clover/optical_flow nodelet_manager" if="$(arg optical_flow)" clear_params="true" output="screen">
         <remap from="image_raw" to="main_camera/image_raw"/>
         <remap from="camera_info" to="main_camera/camera_info"/>
         <param name="calc_flow_gyro" value="true"/>
         <param name="roi_rad" value="0.8"/>
-        <param name="disable_on_vpe" value="false"/>
     </node>
+
+    <!-- main nodelet manager -->
+    <node pkg="nodelet" type="nodelet" name="nodelet_manager" args="manager" output="screen" clear_params="true">
+        <param name="num_worker_threads" value="2"/>
+    </node>
+
+    <node pkg="tf2_ros" type="static_transform_publisher" name="map_flipped_frame" args="0 0 0 3.1415926 3.1415926 0 map map_flipped"/>
 
     <!-- simplified offboard control -->
     <node name="simple_offboard" pkg="clover" type="simple_offboard" output="screen" clear_params="true">
+        <param name="reference_frames/body" value="map"/>
+        <param name="reference_frames/base_link" value="map"/>
+        <param name="reference_frames/navigate_target" value="map"/>
         <param name="reference_frames/main_camera_optical" value="map"/>
     </node>
 
@@ -85,4 +91,11 @@
         <param name="use_fake_gcs" value="false"/>
     </node>
 
+    <!-- Shell access through ROS service -->
+    <node name="shell" pkg="clover" type="shell" output="screen" if="$(arg shell)"/>
+
+    <!-- Update static directory -->
+    <node pkg="roswww_static" name="roswww_static" type="main.py" clear_params="true">
+        <param name="default_package" value="clover"/>
+    </node>
 </launch>

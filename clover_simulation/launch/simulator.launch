@@ -28,11 +28,11 @@
 
     <!-- Clover model -->
     <include file="$(find clover_description)/launch/spawn_drone.launch" if="$(eval type == 'gazebo')">
-        <arg name="main_camera" value="$(arg main_camera)"/>
+        <arg name="main_camera" default="true"/>
         <arg name="maintain_camera_rate" value="$(arg maintain_camera_rate)"/>
         <arg name="rangefinder" value="$(arg rangefinder)"/>
         <arg name="led" value="$(arg led)"/>
-        <arg name="gps" value="$(arg gps)"/>
+        <arg name="gps" value="true"/>
         <arg name="use_clover_physics" value="$(arg use_clover_physics)"/>
     </include>
 
@@ -49,8 +49,8 @@
         <arg name="fcu_ip" value="127.0.0.1"/>
         <arg name="gcs_bridge" value=""/>
         <arg name="web_video_server" default="false" if="$(eval type == 'jmavsim')"/>
-        <arg name="main_camera" default="false" if="$(eval type == 'jmavsim')"/>
-        <arg name="aruco" default="false" if="$(eval type == 'jmavsim')"/>
+        <arg name="main_camera" default="true" if="$(eval type == 'jmavsim')"/>
+        <arg name="aruco" default="true" if="$(eval type == 'jmavsim')"/>
         <arg name="optical_flow" default="false" if="$(eval type == 'jmavsim')"/>
         <arg name="led" default="false" if="$(eval type == 'jmavsim')"/>
     </include>
